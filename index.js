@@ -27,12 +27,13 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const coffeeCollection = client.db('brandDB').collection('brand');
+        const brandCollection = client.db('brandDB').collection('brand');
+        const cartsCollection = client.db('cartsDB').collection('carts');
 
 
         //get all coffee
         app.get('/product', async (req, res) => {
-            const cursor = coffeeCollection.find();
+            const cursor = brandCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
@@ -42,7 +43,7 @@ async function run() {
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
-            const result = await coffeeCollection.findOne(query);
+            const result = await brandCollection.findOne(query);
             res.send(result);
         })
 
@@ -50,9 +51,36 @@ async function run() {
         app.post('/product', async (req, res) => {
             const newCoffee = req.body;
             console.log(newCoffee);
-            const result = await coffeeCollection.insertOne(newCoffee);
+            const result = await brandCollection.insertOne(newCoffee);
             res.send(result);
         })
+        //post cart
+        app.post('/carts', async (req, res) => {
+            const newCoffee = req.body;
+            console.log(newCoffee);
+            const result = await cartsCollection.insertOne(newCoffee);
+            res.send(result);
+        })
+        // get all cart
+        app.get('/carts', async (req, res) => {
+            const cursor = cartsCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+        // get one cart
+        app.get('/carts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await cartsCollection.findOne(query);
+            res.send(result);
+        })
+        app.delete('/carts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await cartsCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
         //
         // //update
@@ -73,17 +101,12 @@ async function run() {
 
         //         }
         //     }
-        //     const result = await coffeeCollection.updateOne(filter, Coffee, options);
+        //     const result = await brandCollection.updateOne(filter, Coffee, options);
         //     res.send(result);
         // })
 
         // //delete one coffee
-        // app.delete('/product/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: new ObjectId(id) };
-        //     const result = await coffeeCollection.deleteOne(query);
-        //     res.send(result);
-        // })
+     
 
 
 
