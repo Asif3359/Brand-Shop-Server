@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+require('dotenv').config();
 // require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -8,9 +9,8 @@ const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-// Brand_Server
-// rpNKb4hKN1q15x0E
-const uri = `mongodb+srv://Brand_Server:rpNKb4hKN1q15x0E@cluster0.7ylhegt.mongodb.net/?retryWrites=true&w=majority`;
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7ylhegt.mongodb.net/?retryWrites=true&w=majority`;
 
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -28,10 +28,11 @@ async function run() {
         await client.connect();
 
         const brandCollection = client.db('brandDB').collection('brand');
-        const cartsCollection = client.db('cartsDB').collection('carts');
+        const cartsCollection = client.db('brandDB').collection('carts');
+        const userCollection = client.db('brandDB').collection('user');
 
 
-        //get all coffee
+        //get all product
         app.get('/product', async (req, res) => {
             const cursor = brandCollection.find();
             const result = await cursor.toArray();
@@ -39,7 +40,7 @@ async function run() {
         })
 
 
-        //get one  coffee
+        //get one  product
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
@@ -47,18 +48,16 @@ async function run() {
             res.send(result);
         })
 
-        //post coffee
+        //post product
         app.post('/product', async (req, res) => {
-            const newCoffee = req.body;
-            console.log(newCoffee);
-            const result = await brandCollection.insertOne(newCoffee);
+            const newProduct = req.body;
+            const result = await brandCollection.insertOne(newProduct);
             res.send(result);
         })
         //post cart
         app.post('/carts', async (req, res) => {
-            const newCoffee = req.body;
-            console.log(newCoffee);
-            const result = await cartsCollection.insertOne(newCoffee);
+            const newCart = req.body;
+            const result = await cartsCollection.insertOne(newCart);
             res.send(result);
         })
         // get all cart
@@ -74,6 +73,8 @@ async function run() {
             const result = await cartsCollection.findOne(query);
             res.send(result);
         })
+
+        // //delete one cart
         app.delete('/carts/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
@@ -83,30 +84,56 @@ async function run() {
 
 
         //
-        // //update
-        // app.put('/product/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const filter = { _id: new ObjectId(id) };
-        //     const options = { upsert: true };
-        //     const UpdatedCoffee = req.body;
-        //     const Coffee = {
-        //         $set: {
-        //             coffeeName: UpdatedCoffee.coffeeName,
-        //             quantity: UpdatedCoffee.quantity,
-        //             supplier: UpdatedCoffee.supplier,
-        //             taste: UpdatedCoffee.taste,
-        //             category: UpdatedCoffee.category,
-        //             details: UpdatedCoffee.details,
-        //             photoUrl: UpdatedCoffee.photoUrl
+        //update
+        app.put('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updateProduct = req.body;
+            const Coffee = {
+                $set: {
+                    name: updateProduct.name,
+                    brandName: updateProduct.brandName,
+                    type: updateProduct.type,
+                    image: updateProduct.image,
+                    price: updateProduct.price,
+                    description: updateProduct.description,
+                    rating: updateProduct.rating
 
-        //         }
-        //     }
-        //     const result = await brandCollection.updateOne(filter, Coffee, options);
-        //     res.send(result);
-        // })
+                }
+            }
+            const result = await brandCollection.updateOne(filter, Coffee, options);
+            res.send(result);
+        })
 
-        // //delete one coffee
-     
+
+        // post user
+        app.post('/users', async (req, res) => {
+            const newUser = req.body;
+            const result = await userCollection.insertOne(newUser);
+            res.send(result);
+        })
+        // patch 
+        app.patch('/users', async (req, res) => {
+            const newUser = req.body;
+            const filter = { email: newUser.email };
+            const updatedDoc = {
+                $set: {
+                    lastLogAt:newUser.lastLogAt,
+                    displayName:newUser.displayName,
+                    displayName: newUser.displayName,
+                    photoURL:newUser.photoURL
+                }
+            }
+            const result = await userCollection.updateOne(filter,updatedDoc);
+            res.send(result);
+        })
+        app.get('/users', async (req, res) => {
+            const cursor = userCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
 
 
 
